@@ -12,5 +12,5 @@ You can use this code to download Images from Renta papy, I had to make it as ot
 
 Adding images for help
 
-[!Image 1](image/img1.png)
-[!Image 2](image/img2.png)
+![Image 1](image/img1.png)
+![Image 2](image/img2.png)
