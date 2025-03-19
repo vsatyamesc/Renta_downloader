@@ -10,6 +10,7 @@ You can use this code to download Images from Renta papy, I had to make it as ot
   3. Exten the Web Developer settings so that only 1 manga page is visible on the browser and then Reload the page. (Very important)
   4. Copy paste the code from the only javascript file present and then run (by pressing enter).
 
+## To Download other mangas or chapters, restart the browser.
 Adding images for help
 
 ![Image 1](image/img1.png)
