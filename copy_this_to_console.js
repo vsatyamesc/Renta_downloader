@@ -1,9 +1,7 @@
-// Dated March 19 2025
-let image_max_1qa = document.getElementById("scrollBar"); // ScrollBar to get The Start and End Page
+let image_max_1qa = document.getElementById("scrollBar");
 const start_img_1qa = Number(image_max_1qa.min);
 const end_img_1qa = Number(image_max_1qa.max);
 
-// Base64 Downloader Function
 function save_image_to_device_vesc(base64image, index) {
   var a = document.createElement("a");
   a.href = base64image;
@@ -11,7 +9,6 @@ function save_image_to_device_vesc(base64image, index) {
   a.click();
 }
 
-// The Code is working so that It loads the image on the browser and waits for it to update then download
 function waitForCanvasUpdate(previousData, index, resolve) {
   const canvas = document.querySelector("#center .imgWrap canvas.canvas");
   const currentData = canvas.toDataURL("image/png", 1.0);
@@ -22,7 +19,6 @@ function waitForCanvasUpdate(previousData, index, resolve) {
   }
 }
 
-// Main Working here
 async function downloadImages() {
   let previousData = ""; // Placeholder for initial canvas data
   for (let i = start_img_1qa; i <= end_img_1qa; i++) {
@@ -47,3 +43,5 @@ async function downloadImages() {
     }
   }
 }
+
+downloadImages();
