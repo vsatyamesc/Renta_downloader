@@ -1,3 +1,5 @@
+// Date 19 March 2025
+
 let image_max_1qa = document.getElementById("scrollBar");
 const start_img_1qa = Number(image_max_1qa.min);
 const end_img_1qa = Number(image_max_1qa.max);
