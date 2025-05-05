@@ -2,6 +2,8 @@
 
 You can use this code to download Images from Renta papy, I had to make it as other codes had stopped working. This code should be relatively easy to manage. This works directly on your browser and downloads the files from your browser. So make sure you set your ***Download Path*** to folder where you want to download.
 
+## There are two Versions, Tampermonkey Script and Browser Console, I suggest using browser console.
+
 ## This is memory consuming as it's storing the images into RAM then downloading, so make sure you close any other applications unless you have huge RAM.
 
 ## Usage
