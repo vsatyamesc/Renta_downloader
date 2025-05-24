@@ -10,7 +10,7 @@ You can use this code to download Images from Renta papy, I had to make it as ot
 
 ## Usage
   1. Open the Manga reader page after buying the manga or whatever, and then open "Web Developer Settings" browser name may change but the shortcut is "Ctrl + Shift + I" for windows.
-  2. Set the Page Slider to 1.
+  2. Set the Page Slider to 1 and use Horizontal Reader.
   3. Extend or contract the Web Developer settings so that only 1 manga page is visible on the browser and then Reload the page. (Very important)
   4. Copy paste the code from the only javascript file present and then run (by pressing enter).
 
