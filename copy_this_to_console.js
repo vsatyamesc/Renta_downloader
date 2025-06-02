@@ -7,7 +7,8 @@ const end_img_1qa = Number(image_max_1qa.max);
 function save_image_to_device_vesc(base64image, index) {
   var a = document.createElement("a");
   a.href = base64image;
-  a.download = "image_" + index + ".png";
+  const paddedIndex = String(index).padStart(3, '0');
+  a.download = "image_" + paddedIndex + ".png";
   a.click();
 }
 
