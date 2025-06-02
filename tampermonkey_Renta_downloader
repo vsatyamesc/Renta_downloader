@@ -46,7 +46,8 @@
     function save_image_to_device_vesc(base64image, index) {
         const a = document.createElement('a');
         a.href = base64image;
-        a.download = `image_${index}.png`;
+        const paddedIndex = String(index).padStart(3, '0');
+        a.download = `image_${paddedIndex}.png`;
         document.body.appendChild(a);
         a.click();
         document.body.removeChild(a);
