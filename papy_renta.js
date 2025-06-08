@@ -1,5 +1,5 @@
 // Date 19 March 2025
-
+// You can change start_img_1qa by any number, 0-indexed to make it start from that page, meaning if you want to download from page 10, do 10-1=9, and set it to 9
 let image_max_1qa = document.getElementById("scrollBar");
 const start_img_1qa = Number(image_max_1qa.min);
 const end_img_1qa = Number(image_max_1qa.max);
