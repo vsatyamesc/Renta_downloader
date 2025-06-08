@@ -5,11 +5,12 @@ const start_img_1qa = Number(image_max_1qa.min);
 const end_img_1qa = Number(image_max_1qa.max);
 
 function save_image_to_device_vesc(base64image, index) {
-  var a = document.createElement("a");
+  const a = document.createElement("a");
   a.href = base64image;
   const paddedIndex = String(index).padStart(3, '0');
   a.download = "image_" + paddedIndex + ".png";
   a.click();
+  document.body.removeChild(a);
 }
 
 function waitForCanvasUpdate(previousData, index, resolve) {
