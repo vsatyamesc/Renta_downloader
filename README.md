@@ -1,7 +1,7 @@
 # Renta Downloader
 
 You can use this code to download Images from Renta papy, I had to make it as other codes had stopped working. This code should be relatively easy to manage. This works directly on your browser and downloads the files from your browser. So make sure you set your ***Download Path*** to folder where you want to download.
-
+## There's <code style="color : #7deb34">tw.myrenta.com</code> and <code style="color : #7deb34">renta.papy.co.jp</code> code separetely, use the code wisely. Follow same instructions for both.
 ## There are two Versions, Tampermonkey Script and Browser Console, I suggest using browser console.
 
 ![Tampermonkey Script]( https://greasyfork.org/en/scripts/534997-renta-papy-image-downloader )
