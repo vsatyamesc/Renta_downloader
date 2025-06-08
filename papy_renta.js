@@ -10,7 +10,11 @@ function save_image_to_device_vesc(base64image, index) {
   const paddedIndex = String(index).padStart(3, '0');
   a.download = "image_" + paddedIndex + ".png";
   a.click();
+  try{
   document.body.removeChild(a);
+  } catch (error) {
+    console.error(error);
+  }
 }
 
 function waitForCanvasUpdate(previousData, index, resolve) {
