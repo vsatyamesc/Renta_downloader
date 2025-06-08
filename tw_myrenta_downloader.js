@@ -1,6 +1,6 @@
 // For https://tw.myrenta.com
 // Taiwan/China Renta Downloader
-
+// copy this to console
 (async () => {
   const sleep = ms => new Promise(r => setTimeout(r, ms));
 
