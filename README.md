@@ -1,4 +1,4 @@
-# Renta Downloader
+# Renta Downloader Using Firefox OG+Developer's Edition 
 
 You can use this code to download Images from Renta papy, I had to make it as other codes had stopped working. This code should be relatively easy to manage. This works directly on your browser and downloads the files from your browser. So make sure you set your ***Download Path*** to folder where you want to download.
 ## There's ![TW Renta Code](https://github.com/vsatyamesc/Renta_downloader/blob/main/horizontal_tw_myrenta_downloader.js) and ![Papy Renta Code](https://github.com/vsatyamesc/Renta_downloader/blob/main/papy_renta.js) code separetely, use the code wisely. Follow same instructions for both.
