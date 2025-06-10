@@ -6,6 +6,7 @@
 // @author       vsatyamesc
 // @license      MIT
 // @match        https://sample.myrenta.com/*
+// @match        https://reader.myrenta.com/*
 // @source       https://github.com/vsatyamesc/Renta_downloader
 // @grant        GM_download
 // @grant        GM_xmlhttpRequest
