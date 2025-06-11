@@ -1,7 +1,6 @@
 // For https://tw.myrenta.com
 // Taiwan/China Renta Downloader
 // copy this to console
-// this hasn't been tested on paid chapters only samples as I don't have account and I don't wanna spend any money.
 (async () => {
   const sleep = ms => new Promise(r => setTimeout(r, ms));
 
