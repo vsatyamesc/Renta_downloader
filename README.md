@@ -15,8 +15,8 @@ You can use this code to download Images from Renta papy, I had to make it as ot
   4. Copy paste the code from the only javascript file present and then run (by pressing enter).
 
 ## Usage for tw webtoon/vertical reader downloader for tw.renta.com, for pros who know how to use tampermonkey.
-  1. v1, is a simple Binary Search Downloader, no need to do anything just run.
-  2. v2 relies on the image url pattern, just find the image url from network requests and replace it in the script and run, you can see the similar pattern in the script itself.
+  1. v1, is a simple Binary Search Downloader, no need to do anything just run and scroll the comics for images to load on browser.
+  2. v2 relies on the image url pattern, just find the image url from network requests and replace it in the script and run, you can see the similar pattern in the script itself and scroll the comics for images to load on browser.
 
 ## Usage for tw webtoon/vertical reader downloader for tw.renta.com, Noobs [Vertical Reader Help](#usage-for-tw-webtoonvertical-reader-downloader-for-twrentacom-noobs--webtoon-reader-help)
   1. You can follow step by step instructions from the images too, anyway you need to use this script ![Version 1 Webtoon TW Downloader](https://github.com/vsatyamesc/Renta_downloader/blob/main/webtoon_tw_renta_downloader_tampermonkey_v1.js)
