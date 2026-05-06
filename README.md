@@ -1,40 +1,48 @@
-# Updated papy_renta.js on 06 May 2026 Working!! TamperMonkey Scripts are not working!
-# Renta Downloader Using Firefox OG+Developer's Edition 
+# This is index.view decoded! Will be making Tampermonkey Based on this Since it won't save UserID encoded on images!
 
-You can use this code to download Images from Renta papy, I had to make it as other codes had stopped working. This code should be relatively easy to manage. This works directly on your browser and downloads the files from your browser. So make sure you set your ***Download Path*** to folder where you want to download.
-## There's ![TW Renta Code](https://github.com/vsatyamesc/Renta_downloader/blob/main/horizontal_tw_myrenta_downloader.js) and ![Papy Renta Code](https://github.com/vsatyamesc/Renta_downloader/blob/main/papy_renta.js) code separetely, use the code wisely. Follow same instructions for both.
-## There are two Versions, Tampermonkey Script and Browser Console, I suggest using browser console for Horizontal Reader Downloader, Webtoon is only supported for Tw.renta.com for now, use Tampermonkey to use the script, there are 2 scripts use wisely, refer to usage below for links if you can't figure it out.
+# Here's the Working
+Here is the breakdown of how the decryption and reconstruction work:
+1. The Data Fetching (XMLHttpRequest)
 
-![Tampermonkey Script Papy Renta](https://github.com/vsatyamesc/Renta_downloader/blob/main/tampermonkey_Renta_downloader )
+The function drawCanvasImage initiates an arraybuffer request to a URL (the octet files from this requests e.g. - https://dre-aka-p.papy.co.jp/filesv/sc/contents/3072446/6s/0/1).
 
-## This is memory consuming as it's storing the images into RAM then downloading, so make sure you close any other applications unless you have huge RAM.
+    It reads the first few bytes of the response to determine metadata like width, height, and "data lengths."
 
-## Usage, Manga for TW and Papy Renta [Horizontal Reader Images](#to-download-other-mangas-or-chapters-restart-the-browser--horizontal-reader-help)
-  1. Open the Manga reader page after buying the manga or whatever, and then open "Web Developer Settings" browser name may change but the shortcut is "Ctrl + Shift + I" for windows.
-  2. Set the Page Slider to 1 and use Horizontal Reader.
-  3. Extend or contract the Web Developer settings so that only 1 manga page is visible on the browser and then Reload the page. (Very important)
-  4. Copy paste the code from the only javascript file present and then run (by pressing enter).
+    It strips away headers to get to the raw encrypted image data.
 
-## Usage for tw webtoon/vertical reader downloader for tw.renta.com, for pros who know how to use tampermonkey.
-  1. v1, is a simple Binary Search Downloader, no need to do anything just run and scroll the comics for images to load on browser.
-  2. v2 relies on the image url pattern, just find the image url from network requests and replace it in the script and run, you can see the similar pattern in the script itself and scroll the comics for images to load on browser.
+2. The Descrambling Logic (f_shuffle_r)
 
-## Usage for tw webtoon/vertical reader downloader for tw.renta.com, Noobs [Vertical Reader Help](#usage-for-tw-webtoonvertical-reader-downloader-for-twrentacom-noobs--webtoon-reader-help)
-  1. You can follow step by step instructions from the images too, anyway you need to use this script ![Version 1 Webtoon TW Downloader](https://github.com/vsatyamesc/Renta_downloader/blob/main/webtoon_tw_renta_downloader_tampermonkey_v1.js)
-  2. Start reading the webtoon you want to download, if it opens on new window (so that your extensions are not visible), copy the reader link and open it on normal window so that the extensions are visible to you.
-  3. Create a new Tampermonkey script.
-  4. Copy paste from the link in step 1.
-  5. Go to webtoon reader page, turn on the script if off and reload the page.
-  6. The Script is will download the images, however you need to scroll to the bottom of the webtoon yourself, scroll full up to down, and down to up multiple times until you are sure that the chapter is downloaded.
+The script uses a shuffle/unshuffle algorithm. The images are sent from the server in a "scrambled" state—meaning the blocks of the image are in the wrong order. The values are usually present in `index.view`
 
-## To Download other mangas or chapters, restart the browser // Horizontal Reader Help
-Adding images for help
+    The Key: It uses prd_ser (Product Serial) and the page number to seed a mathematical shuffle.
 
-![Image 1](image/img1.png)
-![Image 2](image/img2.png)
+    The Grid: It creates a 7x7 grid (_ = new Array(7)). 	var imageSplit = 7;
 
-## Usage for tw webtoon/vertical reader downloader for tw.renta.com, Noobs // Webtoon Reader Help
-![Image 3](image/img3.jpg)
-![Image 4](image/img4.png)
-![Image 5](image/img5.jpg)
-![Image 6](image/img6.jpg)
+    The Algorithm: The f_shuffle_r function performs row and column shifts to determine the correct coordinates for each image tile. 
+    ```
+    for(var n=0; n<total; n++) 
+      t.drawImage(..., ar_chara[...].didx[n][0] * i.width + y, ...)
+    if(t % 2 == 0)
+    C=parseInt(e.lastChild.dataset.num)+parseInt(prd_ser);C%20==0&&(C=Math.abs(e.lastChild.dataset.num-prd_ser)+21);
+    ```
+
+3. The "Image Reconstruction" (D.drawImage)
+
+Once the script calculates the correct positions (x and y coordinates) for the tiles, it uses the Canvas API:
+
+    It takes small pieces of the downloaded image data.
+
+    It converts these pieces from Base64 or Blob data.
+
+    It uses D.drawImage(i, ... ar_chara[a.dataset.num].didx[n][0] * i.width + y, ...) to paint the pieces onto the hidden canvas in the correct order.
+
+4. Anti-Tamper Features
+
+The script includes several "security" measures to prevent easy copying:
+
+    Context Menu Disable: document.oncontextmenu=function(){return!1}; (Prevents right-clicking).
+
+    Watermarking (make_sukasi): It dynamically generates a "Sukashi" (watermark) containing the user_id and overlays it across the image so that even if you take a screenshot, your ID is embedded in the image.
+
+    Canvas Storage: It uses storage: "discardable" and frequently deletes canvas elements after they are out of view to prevent high-resolution memory dumps.
+
