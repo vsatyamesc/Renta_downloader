@@ -1,4 +1,4 @@
-# Updated papy_renta.js on 06 May 2026 Working!! TamperMonkey Scripts are not working!
+# Updated papy_renta.js on 06 May 2026 Working!! Only Renta Papy TamperMonkey Scripts are working! TW Renta Not Tested!
 # Renta Downloader Using Firefox OG+Developer's Edition 
 
 You can use this code to download Images from Renta papy, I had to make it as other codes had stopped working. This code should be relatively easy to manage. This works directly on your browser and downloads the files from your browser. So make sure you set your ***Download Path*** to folder where you want to download.
