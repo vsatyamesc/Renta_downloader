@@ -1,103 +1,367 @@
 // ==UserScript==
 // @name         Renta Papy Image Downloader
 // @namespace    http://tampermonkey.net/
-// @version      1.0
+// @version      2.0
 // @description  Download multiple whole chapters from Renta papy JP
-// @source       https://github.com/vsatyamesc/Renta_downloader
-// @match        https://https://renta.papy.co.jp/*
-// @match        https://dre-viewer.papy.co.jp/*
+// @author       https://github.com/vsatyamesc/Renta_downloader
+// @match        https://dre-viewer.papy.co.jp/sc/view_jsimg*
+// @match        https://dre-viewer*.papy.co.jp/sc/view_jsimg*
 // @grant        none
-// @author       vsatyamesc
 // ==/UserScript==
 
-(function() {
+(function () {
     'use strict';
 
-    // Create and style the download button
-    const button = document.createElement('button');
-    button.textContent = 'Download Images';
-    Object.assign(button.style, {
-        position: 'fixed',
-        left: '20px',
-        bottom: '20px',
-        zIndex: 9999,
-        padding: '8px 16px',
-        backgroundColor: '#4CAF50',
-        color: 'white',
-        border: 'none',
-        borderRadius: '4px',
-        cursor: 'pointer',
-        fontSize: '14px'
-    });
+    function waitForViewer(cb) {
+        const check = setInterval(() => {
+            if (typeof url_base2 !== 'undefined' && typeof max_page !== 'undefined' && typeof prd_ser !== 'undefined') {
+                clearInterval(check);
+                cb();
+            }
+        }, 500);
+    }
 
-    // Add hover effect
-    button.addEventListener('mouseover', () => {
-        button.style.backgroundColor = '#45a049';
-    });
-    button.addEventListener('mouseout', () => {
-        button.style.backgroundColor = '#4CAF50';
-    });
+    function createUI() {
+        const div = document.createElement('div');
+        div.id = 'manga-dl-ui';
+        div.style.cssText = [
+            'position:fixed', 'top:10px', 'right:10px', 'z-index:99999',
+            'background:rgba(0,0,0,0.88)', 'color:#fff', 'padding:14px 18px',
+            'border-radius:10px', 'font-family:sans-serif', 'font-size:13px',
+            'min-width:250px', 'box-shadow:0 4px 20px rgba(0,0,0,0.6)'
+        ].join(';');
+        div.innerHTML = [
+            '<div style="font-weight:bold;font-size:15px;margin-bottom:10px;">📥 Manga Downloader</div>',
+            '<div style="margin-bottom:8px;display:flex;align-items:center;gap:6px;">',
+              '<label>From:</label>',
+              '<input id="dl-from" type="number" value="1" min="1" style="width:60px;background:#333;color:#fff;border:1px solid #666;border-radius:4px;padding:3px 6px;font-size:13px;">',
+              '<label>To:</label>',
+              '<input id="dl-to" type="number" value="" min="1" style="width:60px;background:#333;color:#fff;border:1px solid #666;border-radius:4px;padding:3px 6px;font-size:13px;">',
+            '</div>',
+            '<div style="margin-bottom:10px;display:flex;align-items:center;gap:6px;">',
+              '<label>Workers:</label>',
+              '<input id="dl-concur" type="number" value="3" min="1" max="8" style="width:45px;background:#333;color:#fff;border:1px solid #666;border-radius:4px;padding:3px 6px;font-size:13px;">',
+            '</div>',
+            '<div id="dl-status" style="margin-bottom:6px;color:#aaa;min-height:18px;"></div>',
+            '<progress id="dl-progress" value="0" max="100" style="width:100%;height:8px;margin-bottom:4px;"></progress>',
+            '<div id="dl-detail" style="font-size:11px;color:#888;min-height:14px;margin-bottom:10px;"></div>',
+            '<div style="display:flex;gap:8px;">',
+              '<button id="dl-start" style="flex:1;padding:8px;background:#7eb802;color:#fff;border:none;border-radius:6px;cursor:pointer;font-weight:bold;font-size:13px;">▶ Start</button>',
+              '<button id="dl-cancel" style="padding:8px 12px;background:#c0392b;color:#fff;border:none;border-radius:6px;cursor:pointer;font-size:13px;" disabled>✕</button>',
+            '</div>'
+        ].join('');
+        document.body.appendChild(div);
 
-    // Add button to the page
-    document.body.appendChild(button);
+        // Prevent the viewer's global keydown handler from stealing input keystrokes
+        div.querySelectorAll('input').forEach(inp => {
+            inp.addEventListener('keydown',  e => e.stopPropagation());
+            inp.addEventListener('keyup',    e => e.stopPropagation());
+            inp.addEventListener('keypress', e => e.stopPropagation());
+            inp.addEventListener('mousedown', e => e.stopPropagation());
+            inp.addEventListener('click',    e => e.stopPropagation());
+            inp.addEventListener('focus',    e => e.stopPropagation());
+        });
 
-    let isDownloading = false;
+        return div;
+    }
 
-    function save_image_to_device_vesc(base64image, index) {
+    // ── Port of viewer's addParam ───────────────────────────────────────────────
+    function addParam(url, mode) {
+        const cu = typeof cache_update !== 'undefined' ? cache_update : '0';
+        const ak  = typeof auth_key  !== 'undefined' ? auth_key  : '';
+        const ak3 = typeof auth_key3 !== 'undefined' ? auth_key3 : '';
+        const vm  = typeof viewer_mode !== 'undefined' ? viewer_mode : '';
+        const sn  = typeof server_name !== 'undefined' ? server_name : '';
+        if (mode === 3) {
+            if (cu !== '0') { url += '?date=' + cu; if (ak3) url += '&' + ak3; }
+            else if (ak3)   { url += '?' + ak3; }
+        } else {
+            if (cu !== '0') { url += '?date=' + cu; if (ak) url += '&' + ak; }
+            else if (ak)    { url += '?' + ak; }
+        }
+        if (vm === 'akamai') url += '&origin=' + sn;
+        return url;
+    }
+
+    // ── Port of f_shuffle_r ────────────────────────────────────────────────────
+    function f_shuffle_r(grid, t, l_idx, n) {
+        const half_ceil = Math.ceil(n / 2);
+        const half_floor = Math.floor(n / 2);
+        const d = new Array(n);
+        const l_arr = new Array(half_ceil);
+        const r_arr = new Array(half_floor);
+        if (t % 2 === 0) {
+            let o = 0, k = 0;
+            for (let c = 0; c < n; c++) {
+                if (c % 2 === 0) l_arr[o++] = grid[c][l_idx];
+                else             r_arr[k++]  = grid[c][l_idx];
+            }
+            let s = 0;
+            for (let c = 0; c < half_ceil; c++) {
+                if (r_arr[c] !== undefined) d[s++] = r_arr[c];
+                if (l_arr[c] !== undefined) d[s++] = l_arr[c];
+            }
+        } else {
+            let o = 0, k = 0;
+            for (let c = 0; c < n; c++) {
+                if (c < half_ceil) l_arr[o++] = grid[c][l_idx];
+                else               r_arr[k++]  = grid[c][l_idx];
+            }
+            let s = 0;
+            for (let c = 0; c < half_ceil; c++) {
+                if (l_arr[c] !== undefined) d[s++] = l_arr[c];
+                if (r_arr[c] !== undefined) d[s++] = r_arr[c];
+            }
+        }
+        for (let c = 0; c < n; c++) grid[c][l_idx] = d[c];
+        return grid;
+    }
+
+    // ── Port of generateTileMap ────────────────────────────────────────────────
+    function generateTileMap(prdSer, pageNum, N) {
+        let grid = [];
+        for (let r = 0; r < N; r++) {
+            grid[r] = [];
+            for (let c = 0; c < N; c++) grid[r][c] = r * N + c;
+        }
+        // row shifts
+        for (let r = 0; r < N; r++) {
+            const f = (N - r % N) % N;
+            grid[r] = [...grid[r].slice(f), ...grid[r].slice(0, f)];
+        }
+        // column shifts
+        for (let c = 0; c < N; c++) {
+            const col = grid.map(row => row[c]);
+            const f = (N - c % N) % N;
+            const shifted = [...col.slice(f), ...col.slice(0, f)];
+            for (let r = 0; r < N; r++) grid[r][c] = shifted[r];
+        }
+        // dynamic shuffle
+        for (let l = 0; l < N; l++) {
+            const E = l + 1;
+            let C_key = parseInt(pageNum) + parseInt(prdSer);
+            if (C_key % 20 === 0) C_key = Math.abs(parseInt(pageNum) - parseInt(prdSer)) + 21;
+            const limit = Math.floor((E * C_key + pageNum / 20) % 20) - 1;
+            for (let h = limit; h >= 0; h--) grid = f_shuffle_r(grid, h, l, N);
+        }
+        const map = {};
+        for (let r = 0; r < N; r++)
+            for (let c = 0; c < N; c++)
+                map[grid[r][c]] = { col: c, row: r };
+        return map;
+    }
+
+    function fGetData(seg, rawBytes) {
+        if (!seg) return null;
+        const [start, length] = seg.split(',').map(Number);
+        return rawBytes.slice(start, start + length);
+    }
+
+    // ── Fetch raw page buffer ──────────────────────────────────────────────────
+    function fetchPage(pageNum, paramMode) {
+        return new Promise((resolve, reject) => {
+            let url = (typeof url_base2 !== 'undefined' ? url_base2 : window.url_base2) + pageNum;
+            url = addParam(url, paramMode);
+            const xhr = new XMLHttpRequest();
+            xhr.open('GET', url, true);
+            xhr.responseType = 'arraybuffer';
+            xhr.withCredentials = true;
+            xhr.onreadystatechange = () => {
+                if (xhr.readyState === 4) {
+                    if (xhr.status === 200) resolve(xhr.response);
+                    else reject(new Error('HTTP ' + xhr.status));
+                }
+            };
+            xhr.send();
+        });
+    }
+
+    // ── Load a jpeg from raw Uint8Array bytes ──────────────────────────────────
+    function loadImg(data) {
+        return new Promise((resolve, reject) => {
+            if (!data || !data.length) { resolve(null); return; }
+            // chunk btoa to avoid "maximum call stack" on large arrays
+            let b64 = '';
+            const chunk = 8192;
+            for (let i = 0; i < data.length; i += chunk) {
+                b64 += String.fromCharCode(...data.slice(i, i + chunk));
+            }
+            const img = new Image();
+            img.onload = () => resolve(img);
+            img.onerror = () => reject(new Error('Image decode failed'));
+            img.src = 'data:image/jpeg;base64,' + btoa(b64);
+        });
+    }
+
+    // ── Decrypt one page, return a data URL ────────────────────────────────────
+    async function decryptPage(buffer, prdSer, pageNum, N) {
+        const bytes = new Uint8Array(buffer);
+
+        // metadata length in first 9 bytes
+        let s = '';
+        for (let i = 0; i < 9; i++) s += String.fromCharCode(bytes[i]);
+        const metaLen = parseInt(s.trim(), 10);
+
+        s = '';
+        for (let i = 9; i < 9 + metaLen; i++) s += String.fromCharCode(bytes[i]);
+        const meta = s.split('|');
+
+        const totalW  = parseInt(meta[0]);
+        const totalH  = parseInt(meta[1]);
+        const rawBytes = bytes.slice(9 + metaLen);
+
+        // meta[2] = wImg segment, meta[3] = hImg segment, meta[4..] = tiles
+        const wImg = await loadImg(fGetData(meta[2], rawBytes));
+        const hImg = await loadImg(fGetData(meta[3], rawBytes));
+
+        const tiles = [];
+        for (let i = 4; i < meta.length; i++) {
+            if (!meta[i]) continue;
+            const img = await loadImg(fGetData(meta[i], rawBytes));
+            if (img) tiles.push(img);
+        }
+
+        const tileMap = generateTileMap(prdSer, pageNum, N);
+
+        const canvas = document.createElement('canvas');
+        canvas.width  = totalW;
+        canvas.height = totalH;
+        const ctx = canvas.getContext('2d');
+        ctx.fillStyle = '#111111';
+        ctx.fillRect(0, 0, totalW, totalH);
+
+        const wW = wImg ? wImg.width  : 0;
+        const hH = hImg ? hImg.height : 0;
+        if (wImg) ctx.drawImage(wImg, 0, 0);
+        if (hImg) ctx.drawImage(hImg, wW, 0);
+
+        const tW = tiles[0] ? tiles[0].width  : 0;
+        const tH = tiles[0] ? tiles[0].height : 0;
+
+        for (let i = 0; i < Math.min(tiles.length, N * N); i++) {
+            const pos = tileMap[i];
+            if (!pos) continue;
+            ctx.drawImage(tiles[i], pos.col * tW + wW, pos.row * tH + hH);
+        }
+
+        return canvas.toDataURL('image/png');
+    }
+
+    // ── Trigger a browser download from a data URL ────────────────────────────
+    function saveDataURL(dataUrl, filename) {
         const a = document.createElement('a');
-        a.href = base64image;
-        const paddedIndex = String(index).padStart(3, '0');
-        a.download = `image_${paddedIndex}.png`;
+        a.href = dataUrl;
+        a.download = filename;
         document.body.appendChild(a);
         a.click();
-        document.body.removeChild(a);
+        setTimeout(() => a.remove(), 1500);
     }
 
-    function waitForCanvasUpdate(previousData, index, resolve) {
-        const canvas = document.querySelector('#center .imgWrap canvas.canvas');
-        const currentData = canvas.toDataURL('image/png', 1.0);
-        if (currentData !== previousData) {
-            resolve(currentData);
-        } else {
-            setTimeout(() => waitForCanvasUpdate(previousData, index, resolve), 100);
-        }
-    }
+    // ── Main ──────────────────────────────────────────────────────────────────
+    waitForViewer(() => {
+        createUI();
 
-    async function downloadImages() {
-        if (isDownloading) return;
-        isDownloading = true;
-        button.textContent = 'Downloading...';
-        button.style.backgroundColor = '#808080';
+        const maxP = typeof max_page !== 'undefined' ? max_page : 200;
+        document.getElementById('dl-to').value = maxP;
 
-        try {
-            const image_max_1qa = document.getElementById('scrollBar');
-            const start_img_1qa = Number(image_max_1qa.min);
-            const end_img_1qa = Number(image_max_1qa.max);
+        let cancelToken = { cancelled: false };
+        let running     = false;
 
-            let previousData = '';
-            for (let i = start_img_1qa; i <= end_img_1qa; i++) {
-                if (i === start_img_1qa) {
-                    const canvas = document.querySelector('#center .imgWrap canvas.canvas');
-                    previousData = canvas.toDataURL('image/png', 1.0);
-                    save_image_to_device_vesc(previousData, i);
-                } else {
-                    jumpPage(i);
-                    const updatedImage = await new Promise(resolve =>
-                        waitForCanvasUpdate(previousData, i, resolve)
-                    );
-                    save_image_to_device_vesc(updatedImage, i);
-                    previousData = updatedImage;
+        document.getElementById('dl-start').addEventListener('click', async () => {
+            if (running) return;
+            running = true;
+            cancelToken = { cancelled: false };
+
+            const fromPage    = parseInt(document.getElementById('dl-from').value)  || 1;
+            const toPage      = Math.min(parseInt(document.getElementById('dl-to').value) || maxP, maxP);
+            const concurrency = parseInt(document.getElementById('dl-concur').value) || 3;
+            const prdSer      = String(typeof prd_ser !== 'undefined' ? prd_ser : window.prd_ser);
+            const N           = typeof window.imageSplit !== 'undefined' ? window.imageSplit : 7;
+            const paramMode   = typeof addParamMode !== 'undefined' ? addParamMode : 2;
+            const total       = toPage - fromPage + 1;
+
+            const statusEl   = document.getElementById('dl-status');
+            const progressEl = document.getElementById('dl-progress');
+            const detailEl   = document.getElementById('dl-detail');
+            const startBtn   = document.getElementById('dl-start');
+            const cancelBtn  = document.getElementById('dl-cancel');
+            const sleep = (ms) => new Promise(resolve => setTimeout(resolve, ms));
+
+            startBtn.disabled  = true;
+            cancelBtn.disabled = false;
+            progressEl.value   = 0;
+            progressEl.max     = total;
+            statusEl.style.color = '#7eb802';
+            statusEl.textContent = 'Starting…';
+            detailEl.textContent = '';
+
+            let done   = 0;
+            const failed = [];
+            const pages  = [];
+            for (let p = fromPage; p <= toPage; p++) pages.push(p);
+            let idx = 0;
+
+            async function worker() {
+                while (idx < pages.length && !cancelToken.cancelled) {
+                    const pageNum = pages[idx++];
+                    try {
+                        const buf    = await fetchPage(pageNum, paramMode);
+                        if (cancelToken.cancelled) break;
+                        const dataUrl = await decryptPage(buf, prdSer, pageNum, N);
+                        if (cancelToken.cancelled) break;
+
+                        const padded = String(pageNum).padStart(4, '0');
+                        saveDataURL(dataUrl, 'page_' + padded + '.png');
+
+                        done++;
+                        progressEl.value     = done;
+                        statusEl.textContent = 'Downloading… ' + done + '/' + total;
+                        detailEl.style.color = '#888';
+                        detailEl.textContent = 'Saved page ' + pageNum;
+
+                        if (idx < pages.length) {
+                            await sleep(1100);
+                        }
+                    } catch (e) {
+                        done++;
+                        failed.push(pageNum);
+                        progressEl.value     = done;
+                        detailEl.style.color = '#e74c3c';
+                        detailEl.textContent = 'Page ' + pageNum + ' failed: ' + e.message;
+                        console.error('Page ' + pageNum + ' error:', e);
+                    }
                 }
             }
-        } catch (error) {
-            console.error('Error during download:', error);
-            alert('Download failed: ' + error.message);
-        } finally {
-            isDownloading = false;
-            button.textContent = 'Download Images';
-            button.style.backgroundColor = '#4CAF50';
-        }
-    }
 
-    button.addEventListener('click', downloadImages);
+            const workers = [];
+            for (let i = 0; i < concurrency; i++) workers.push(worker());
+            await Promise.all(workers);
+
+            if (cancelToken.cancelled) {
+                statusEl.style.color = '#e74c3c';
+                statusEl.textContent = 'Cancelled at ' + done + '/' + total;
+            } else {
+                statusEl.style.color = '#7eb802';
+                statusEl.textContent = '✅ Done! ' + done + ' pages saved.';
+                if (failed.length > 0) {
+                    detailEl.style.color = '#e74c3c';
+                    detailEl.textContent = 'Failed pages: ' + failed.join(', ');
+                } else {
+                    detailEl.style.color = '#888';
+                    detailEl.textContent = 'All pages downloaded successfully.';
+                }
+            }
+
+            startBtn.disabled  = false;
+            cancelBtn.disabled = true;
+            running            = false;
+        });
+
+        document.getElementById('dl-cancel').addEventListener('click', () => {
+            cancelToken.cancelled = true;
+            document.getElementById('dl-status').textContent = 'Cancelling…';
+            document.getElementById('dl-cancel').disabled = true;
+        });
+    });
+
 })();
