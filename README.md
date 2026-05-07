@@ -9,9 +9,9 @@ You can use this code to download Images from Renta papy, I had to make it as ot
 
 ## This is memory consuming as it's storing the images into RAM then downloading, so make sure you close any other applications unless you have huge RAM.
 
-## Usage, Manga for TW and Papy Renta [Horizontal Reader Images](#to-download-other-mangas-or-chapters-restart-the-browser--horizontal-reader-help)
+## Usage, Manga for TW and Papy Renta [Vertical Reader Images]
   1. Open the Manga reader page after buying the manga or whatever, and then open "Web Developer Settings" browser name may change but the shortcut is "Ctrl + Shift + I" for windows.
-  2. Set the Page Slider to 1 and use Horizontal Reader.
+  2. Set the Page Slider to 1 and use Vertical Reader.
   3. Extend or contract the Web Developer settings so that only 1 manga page is visible on the browser and then Reload the page. (Very important)
   4. Copy paste the code from the only javascript file present and then run (by pressing enter).
 
@@ -27,7 +27,7 @@ You can use this code to download Images from Renta papy, I had to make it as ot
   5. Go to webtoon reader page, turn on the script if off and reload the page.
   6. The Script is will download the images, however you need to scroll to the bottom of the webtoon yourself, scroll full up to down, and down to up multiple times until you are sure that the chapter is downloaded.
 
-## To Download other mangas or chapters, restart the browser // Horizontal Reader Help
+## To Download other mangas or chapters, restart the browser // Vertical Reader Help
 Adding images for help
 
 ![Image 1](image/img1.png)
